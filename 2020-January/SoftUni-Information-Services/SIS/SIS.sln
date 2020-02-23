@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIS.HTTP", "SIS.HTTP\SIS.HTTP.csproj", "{97BADE74-5483-496B-B62B-57FFD511949B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIS.MvcFramework", "SIS.MvcFramework\SIS.MvcFramework.csproj", "{BBDC4633-4773-4AAA-A267-81641D43D64F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoApp", "DemoApp\DemoApp.csproj", "{D836A3AC-B5A5-4623-B1AC-6BCB0B21FEAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{97BADE74-5483-496B-B62B-57FFD511949B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97BADE74-5483-496B-B62B-57FFD511949B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97BADE74-5483-496B-B62B-57FFD511949B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97BADE74-5483-496B-B62B-57FFD511949B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBDC4633-4773-4AAA-A267-81641D43D64F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBDC4633-4773-4AAA-A267-81641D43D64F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBDC4633-4773-4AAA-A267-81641D43D64F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBDC4633-4773-4AAA-A267-81641D43D64F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D836A3AC-B5A5-4623-B1AC-6BCB0B21FEAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D836A3AC-B5A5-4623-B1AC-6BCB0B21FEAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D836A3AC-B5A5-4623-B1AC-6BCB0B21FEAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D836A3AC-B5A5-4623-B1AC-6BCB0B21FEAA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
