@@ -1,4 +1,4 @@
-﻿namespace SIS.HTTP
+﻿namespace SIS.HTTP.Models
 {
     using System;
     using System.Collections.Generic;

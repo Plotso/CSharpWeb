@@ -10,17 +10,19 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Enums;
+    using Models;
 
     public class HttpServer : IHttpServer
     {
+        private readonly IList<Route> _routeTable;
         private const string HttpNewLine = "\r\n";
         private readonly TcpListener _tcpListener;
         private static readonly Dictionary<string, int> SessionStorage = new Dictionary<string, int>();
         //ToDo: Actions
-        public HttpServer(int port)
+        public HttpServer(int port, IList<Route> routeTable)
         {
+            _routeTable = routeTable;
             _tcpListener = new TcpListener(IPAddress.Loopback, port);
-            
         }
         public async Task StartAsync()
         {
@@ -63,7 +65,7 @@
                 Console.WriteLine(requestToString);
                 Console.WriteLine(new string('=', 60));
                 var request = new HttpRequest(requestToString);
-
+                
                 var sessionId = Regex.Match(requestToString, @"sessionId=[^\n]*\n").Value?.Replace("sessionId=", string.Empty).Trim();
                 Console.WriteLine(sessionId);
                 var newSessionId = Guid.NewGuid().ToString();
@@ -80,26 +82,27 @@
                     sessionCount = 1;
                 }
 
-                var content = "<h1>" + sessionCount + "</h1>" + "<h1>" + DateTime.UtcNow + "</h1>";
-                if (request.Path == "/")
+                var sessionCounterContent = "<h1>" + sessionCount + "</h1>" + "<h1>" + DateTime.UtcNow + "</h1>";
+
+                var routeMap = _routeTable.FirstOrDefault(x => x.HttpMethod == request.Method && x.Path == request.Path);
+                HttpResponse response;
+                if (routeMap == null)
                 {
-                    content = "<h1> Home Page </h1>" + content;
+                    response = new HttpResponse(HttpResponseCode.NotFound, new byte[0]);
                 }
-                var responseOld = "HTTP/1.0 200 OK" + HttpNewLine +
-                                     "Server: SoftUniServer/1.0" + HttpNewLine +
-                                     "Content-Type: text/html" + HttpNewLine +
-                                     "Set-Cookie: user=Niki; Max-Age: 3600; HttpOnly;" + HttpNewLine +
-                                     (string.IsNullOrWhiteSpace(sessionId) ?
-                                         ("Set-Cookie: sessionId=" + newSessionId + HttpNewLine)
-                                         : string.Empty) +
-                                     // "Location: https://google.com" + HttpNewLine +
-                                     // "Content-Disposition: attachment; filename=niki.html" + HttpNewLine +
-                                     "Content-Length: " + content.Length + HttpNewLine +
-                                     HttpNewLine +
-                                     content;
-                var response = new HttpResponse(HttpResponseCode.Ok, Encoding.UTF8.GetBytes(content));
+                else
+                {
+                    response = routeMap.Action(request);
+                    response.Body = response.Body.Concat(Encoding.UTF8.GetBytes(sessionCounterContent)).ToArray();
+                }
+
+                var responseOld = HardcodedResponse(sessionId, newSessionId, sessionCounterContent);
                 response.Headers.Add(new Header("Server", "SoftUniServer/1.0"));
-                response.Headers.Add(new Header("Content-Type", "text/html"));
+                response.Cookies.Add(new ResponseCookie("sessionId", Guid.NewGuid().ToString())
+                {
+                    HttpOnly = true,
+                    MaxAge = 3600
+                });
                 var responseToBytes = Encoding.UTF8.GetBytes(response.ToString());
             
                 await networkStream.WriteAsync(
@@ -123,6 +126,23 @@
                 await networkStream.WriteAsync(responseBytes, 0, responseBytes.Length);
                 await networkStream.WriteAsync(errorResponse.Body, 0, errorResponse.Body.Length);
             }
+        }
+
+        [Obsolete]
+        private static string HardcodedResponse(string sessionId, string newSessionId, string content)
+        {
+            return "HTTP/1.0 200 OK" + HttpNewLine +
+                   "Server: SoftUniServer/1.0" + HttpNewLine +
+                   "Content-Type: text/html" + HttpNewLine +
+                   "Set-Cookie: user=Niki; Max-Age: 3600; HttpOnly;" + HttpNewLine +
+                   (string.IsNullOrWhiteSpace(sessionId) ?
+                       ("Set-Cookie: sessionId=" + newSessionId + HttpNewLine)
+                       : string.Empty) +
+                   // "Location: https://google.com" + HttpNewLine +
+                   // "Content-Disposition: attachment; filename=niki.html" + HttpNewLine +
+                   "Content-Length: " + content.Length + HttpNewLine +
+                   HttpNewLine +
+                   content;
         }
     }
 }

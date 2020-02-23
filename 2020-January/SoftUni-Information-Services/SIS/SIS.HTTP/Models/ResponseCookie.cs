@@ -1,4 +1,4 @@
-﻿namespace SIS.HTTP
+﻿namespace SIS.HTTP.Models
 {
     using System;
     using System.Text;
@@ -9,6 +9,9 @@
         public ResponseCookie(string name, string value) 
             : base(name, value)
         {
+            Path = "/";
+            SameSite = SameSiteType.None;
+            Expires = DateTime.UtcNow.AddDays(30);
         }
         
         /// <summary>
@@ -65,6 +68,7 @@
         {
             var cookieBuilder = new StringBuilder();
             cookieBuilder.Append($"{Name}={Value}");
+            
             if (MaxAge.HasValue)
             {
                 cookieBuilder.Append("; Max-Age=" + MaxAge.Value);

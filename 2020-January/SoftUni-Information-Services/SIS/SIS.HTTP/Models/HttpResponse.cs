@@ -1,4 +1,4 @@
-﻿namespace SIS.HTTP
+﻿namespace SIS.HTTP.Models
 {
     using System.Collections.Generic;
     using System.Text;
@@ -72,7 +72,6 @@
             foreach (var cookie in Cookies)
             {
                 responseAsString.Append("Set-Cookie: " + cookie + HttpConstants.NewLine);
-                ;
             }
 
             responseAsString.Append(HttpConstants.NewLine);
