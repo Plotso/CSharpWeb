@@ -58,6 +58,7 @@
                 count: bytesRead);
             Console.WriteLine(requestToString);
             Console.WriteLine(new string('=', 60));
+            var request = new HttpRequest(requestToString);
 
             var sessionId = Regex.Match(requestToString, @"sessionId=[^\n]*\n").Value?.Replace("sessionId=", string.Empty).Trim();
             Console.WriteLine(sessionId);
