@@ -57,6 +57,11 @@
         /// HTTP Request Body.
         /// </summary>
         public string Body { get; set; }
+        
+        /// <summary>
+        /// Used to populate information about current session
+        /// </summary>
+        public IDictionary<string, string> SessionData { get; set; }
 
         //ToDo: Extract below method to a parser class
         private void ParseHttpRequestLine(string[] lines)

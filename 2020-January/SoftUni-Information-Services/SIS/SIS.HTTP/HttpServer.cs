@@ -14,16 +14,20 @@
 
     public class HttpServer : IHttpServer
     {
-        private readonly IList<Route> _routeTable;
         private const string HttpNewLine = "\r\n";
+        private readonly IList<Route> _routeTable;
         private readonly TcpListener _tcpListener;
-        private static readonly Dictionary<string, int> SessionStorage = new Dictionary<string, int>();
+
+        private readonly IDictionary<string, IDictionary<string, string>> _sessionStorage;
+
         //ToDo: Actions
         public HttpServer(int port, IList<Route> routeTable)
         {
             _routeTable = routeTable;
+            _sessionStorage = new Dictionary<string, IDictionary<string, string>>();
             _tcpListener = new TcpListener(IPAddress.Loopback, port);
         }
+
         public async Task StartAsync()
         {
             _tcpListener.Start();
@@ -44,9 +48,9 @@
 
         public void Stop()
         {
-           _tcpListener.Stop();
+            _tcpListener.Stop();
         }
-        
+
         private async Task ProcessClientAsync(TcpClient tcpClient)
         {
             var networkStream = tcpClient.GetStream();
@@ -64,47 +68,46 @@
                     count: bytesRead);
                 Console.WriteLine(requestToString);
                 Console.WriteLine(new string('=', 60));
+
                 var request = new HttpRequest(requestToString);
+
+                string newSessionId = null;
+                var sessionCookie = request.Cookies.FirstOrDefault(s => s.Name == HttpConstants.SessionIdCookieName);
+
+                if (sessionCookie != null && _sessionStorage.ContainsKey(sessionCookie.Value))
+                {
+                    request.SessionData = _sessionStorage[sessionCookie.Value];
+                }
+                else
+                {
+                    newSessionId = Guid.NewGuid().ToString();
+                    var cookiesDictionary = new Dictionary<string, string>
+                    {
+                        {HttpConstants.SessionIdCookieName, newSessionId}
+                    };
+                    _sessionStorage.Add(newSessionId, cookiesDictionary);
+                    request.SessionData = cookiesDictionary;
+                }
+
+                var routeMap =
+                    _routeTable.FirstOrDefault(x => x.HttpMethod == request.Method && x.Path == request.Path);
                 
-                var sessionId = Regex.Match(requestToString, @"sessionId=[^\n]*\n").Value?.Replace("sessionId=", string.Empty).Trim();
-                Console.WriteLine(sessionId);
-                var newSessionId = Guid.NewGuid().ToString();
-                var sessionCount = 0;
-                if (SessionStorage.ContainsKey(sessionId))
-                {
-                    SessionStorage[sessionId]++;
-                    sessionCount = SessionStorage[sessionId];
-                }
-                else
-                {
-                    sessionId = null;
-                    SessionStorage[newSessionId] = 1;
-                    sessionCount = 1;
-                }
+                var response = routeMap == null ?
+                    new HttpResponse(HttpResponseCode.NotFound, new byte[0]) 
+                    : routeMap.Action(request);
 
-                var sessionCounterContent = "<h1>" + sessionCount + "</h1>" + "<h1>" + DateTime.UtcNow + "</h1>";
-
-                var routeMap = _routeTable.FirstOrDefault(x => x.HttpMethod == request.Method && x.Path == request.Path);
-                HttpResponse response;
-                if (routeMap == null)
-                {
-                    response = new HttpResponse(HttpResponseCode.NotFound, new byte[0]);
-                }
-                else
-                {
-                    response = routeMap.Action(request);
-                    response.Body = response.Body.Concat(Encoding.UTF8.GetBytes(sessionCounterContent)).ToArray();
-                }
-
-                var responseOld = HardcodedResponse(sessionId, newSessionId, sessionCounterContent);
                 response.Headers.Add(new Header("Server", "SoftUniServer/1.0"));
-                response.Cookies.Add(new ResponseCookie("sessionId", Guid.NewGuid().ToString())
+                if (newSessionId != null)
                 {
-                    HttpOnly = true,
-                    MaxAge = 3600
-                });
+                    response.Cookies.Add(new ResponseCookie(HttpConstants.SessionIdCookieName, newSessionId)
+                    {
+                        HttpOnly = true,
+                        MaxAge = 3600
+                    });
+                }
+
                 var responseToBytes = Encoding.UTF8.GetBytes(response.ToString());
-            
+
                 await networkStream.WriteAsync(
                     buffer: responseToBytes,
                     offset: 0,
@@ -121,7 +124,7 @@
                     HttpResponseCode.InternalServerError,
                     Encoding.UTF8.GetBytes(ex.ToString()));
                 errorResponse.Headers.Add(new Header("Content-Type", "text/plain"));
-                
+
                 var responseBytes = Encoding.UTF8.GetBytes(errorResponse.ToString());
                 await networkStream.WriteAsync(responseBytes, 0, responseBytes.Length);
                 await networkStream.WriteAsync(errorResponse.Body, 0, errorResponse.Body.Length);
@@ -135,8 +138,8 @@
                    "Server: SoftUniServer/1.0" + HttpNewLine +
                    "Content-Type: text/html" + HttpNewLine +
                    "Set-Cookie: user=Niki; Max-Age: 3600; HttpOnly;" + HttpNewLine +
-                   (string.IsNullOrWhiteSpace(sessionId) ?
-                       ("Set-Cookie: sessionId=" + newSessionId + HttpNewLine)
+                   (string.IsNullOrWhiteSpace(sessionId)
+                       ? ("Set-Cookie: sessionId=" + newSessionId + HttpNewLine)
                        : string.Empty) +
                    // "Location: https://google.com" + HttpNewLine +
                    // "Content-Disposition: attachment; filename=niki.html" + HttpNewLine +
