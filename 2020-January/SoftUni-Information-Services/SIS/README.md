@@ -9,3 +9,11 @@ Basic HTTPServer that is build from scratch. It sticks to conventions seen in AS
 
 ### SIS.MvcFramework
 Build from scratch a framework similar to the MVC Framework used in ASP.NET Core
+
+
+##### Frameworks used inside soluton
+> **DemoApp** - ConsoleApplication built in NETStandard 2.1
+
+> **SIS.HTTP** - ClassLibrary built in NETStandard 2.1
+
+> **SIS.MvcFramework** - ClassLibrary built in NETStandard 2.1
