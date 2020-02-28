@@ -8,6 +8,7 @@
     using SIS.HTTP;
     using SIS.HTTP.Enums;
     using SIS.HTTP.Models;
+    using SIS.HTTP.Response;
 
     public class Program
     {
@@ -27,38 +28,22 @@
 
         public static HttpResponse Index(HttpRequest request)
         {
-            var content = "<h1> Home Page </h1>";
-            var stringContent = Encoding.UTF8.GetBytes(content);
-            var response = new HttpResponse(HttpResponseCode.Ok, stringContent);
-            response.Headers.Add(new Header("Content-Type", "text/html"));
-            return response;
+            return new HtmlResponse("<h1> Home Page </h1>");
         }
         
         public static HttpResponse Login(HttpRequest request)
         {
-            var content = "<h1> Login Page </h1>";
-            var stringContent = Encoding.UTF8.GetBytes(content);
-            var response = new HttpResponse(HttpResponseCode.Ok, stringContent);
-            response.Headers.Add(new Header("Content-Type", "text/html"));
-            return response;
+            return new HtmlResponse("<h1> Login Page </h1>");
         }
         
         public static HttpResponse DoLogin(HttpRequest request)
         {
-            var content = "<h1> Login Form to be added </h1>";
-            var stringContent = Encoding.UTF8.GetBytes(content);
-            var response = new HttpResponse(HttpResponseCode.Ok, stringContent);
-            response.Headers.Add(new Header("Content-Type", "text/html"));
-            return response;
+            return new HtmlResponse("<h1> Login Form to be added </h1>");
         }
         
         public static HttpResponse Contact(HttpRequest request)
         {
-            var content = "<h1> Contact Page </h1>";
-            var stringContent = Encoding.UTF8.GetBytes(content);
-            var response = new HttpResponse(HttpResponseCode.Ok, stringContent);
-            response.Headers.Add(new Header("Content-Type", "text/html"));
-            return response;
+            return new HtmlResponse("<h1> Contact Page </h1>");
         }
         
         private static HttpResponse FavIcon(HttpRequest request)

@@ -17,7 +17,7 @@
             }
         }
 
-        private HttpResponse()
+        internal HttpResponse()
         {
             Version = HttpVersionType.Http10;
             Headers = new List<Header>();
