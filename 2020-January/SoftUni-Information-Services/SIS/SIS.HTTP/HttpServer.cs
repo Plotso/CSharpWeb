@@ -20,7 +20,6 @@
 
         private readonly IDictionary<string, IDictionary<string, string>> _sessionStorage;
 
-        //ToDo: Actions
         public HttpServer(int port, IList<Route> routeTable)
         {
             _routeTable = routeTable;
