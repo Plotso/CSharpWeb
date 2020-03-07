@@ -66,6 +66,8 @@
             return new HtmlResponse(html.ToString());
         }
         
+        // /Tweets => Index
+        // /Tweets/Create => Create
         public static HttpResponse CreateTweet(HttpRequest request)
         {
             var db = new ApplicationDbContext();
