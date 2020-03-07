@@ -3,8 +3,9 @@
     using System.IO;
     using SIS.HTTP.Models;
     using SIS.HTTP.Response;
+    using SIS.MvcFramework;
 
-    public class StaticFilesController
+    public class StaticFilesController : Controller
     {
         private const string CSSContentType = "text/css";
         private const string CSSDirectory = "wwwroot/css";
