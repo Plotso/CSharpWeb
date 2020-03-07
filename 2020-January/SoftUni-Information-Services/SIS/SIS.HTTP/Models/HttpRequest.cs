@@ -17,6 +17,7 @@
             
             Headers = new List<Header>();
             Cookies = new List<Cookie>();
+            FormData = new Dictionary<string, string>();
             
             HttpRequestParser.ParseRequest(httpRequestAsString, this);
         }
@@ -55,5 +56,10 @@
         /// Used to populate information about current session
         /// </summary>
         public IDictionary<string, string> SessionData { get; set; }
+        
+        /// <summary>
+        /// Used to save data from HTML Form attributes
+        /// </summary>
+        public IDictionary<string, string> FormData { get; set; }
     }
 }

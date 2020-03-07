@@ -1,7 +1,9 @@
 ﻿namespace SIS.HTTP
 {
     using System;
+    using System.Collections.Generic;
     using System.Text;
+    using System.Web;
     using Enums;
     using Models;
 
@@ -87,6 +89,19 @@
             }
 
             request.Body = bodyBuilder.ToString().TrimEnd('\r', '\n');
+            ParseFormData(request.FormData, request.Body);
+        }
+
+        private static void ParseFormData(IDictionary<string, string> requestFormData, string requestBody)
+        {
+            var dataParts = requestBody.Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var dataPart in dataParts)
+            {
+                var parameterParts = dataPart.Split(new char[] { '=' }, 2);
+                requestFormData.Add(
+                    HttpUtility.UrlDecode(parameterParts[0]),
+                    HttpUtility.UrlDecode(parameterParts[1]));
+            }
         }
 
         private static void ParseCookies(string[] cookieHeader, HttpRequest request)
