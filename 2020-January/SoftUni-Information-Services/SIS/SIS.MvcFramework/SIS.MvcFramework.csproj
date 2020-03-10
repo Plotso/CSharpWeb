@@ -9,4 +9,8 @@
       <ProjectReference Include="..\SIS.HTTP\SIS.HTTP.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.4.0" />
+    </ItemGroup>
+
 </Project>
