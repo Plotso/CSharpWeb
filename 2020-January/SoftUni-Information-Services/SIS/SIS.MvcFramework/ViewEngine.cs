@@ -2,10 +2,12 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using System.Text;
+    using System.Text.RegularExpressions;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Emit;
 
     public class ViewEngine : IViewEngine
     {
@@ -16,6 +18,15 @@
         public string GetHtml(string templateHtml, object model)
         {
             var methodCode = PrepareCSharpCode(templateHtml);
+            
+            var modelType = model?.GetType() ?? typeof(object);
+            var typeName = modelType.FullName;
+            
+            if (modelType.IsGenericType)
+            {
+                //typeName = GetGenericTypeFullName(modelType);
+                typeName = model.GetType().Name.Replace("`1", string.Empty) + "<" + model.GetType().GenericTypeArguments.First().Name + ">";
+            }
 
             var code = @$"using System;
                                 using System.Text;
@@ -28,6 +39,7 @@
                                     {{
                                         public string GetHtml(object model)
                                         {{
+                                            var Model = model as {typeName};
                                             //var User = user;
                                             var html = new StringBuilder();
 
@@ -37,7 +49,14 @@
                                         }}
                                     }}
                                 }}";
-            //IView view = GetInstanceFromCode(code, model);
+            var view = GetInstanceFromCode(code, model);
+            var html = view.GetHtml(model);
+            return html;
+        }
+
+        private string GetGenericTypeFullName(Type modelType)
+        {
+            // ToDo: Add logic 
             return "";
         }
 
@@ -76,8 +95,10 @@
             var compilationResult = compilation.Emit(memoryStream);
             if (!compilationResult.Success)
             {
-                //ToDo: Add functionality to return ErrorView
-                return null;
+                return new ErrorView(
+                    compilationResult.Diagnostics
+                        .Where(d => d.Severity == DiagnosticSeverity.Error)
+                        .Select(e => e.GetMessage()));
             }
 
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -92,8 +113,48 @@
 
         private string PrepareCSharpCode(string templateHtml)
         {
-            //ToDo: Add functionality
-            return "";
+            const string CSharpRegexExpression = @"[^\<\""\s&]+";
+            var regex = new Regex(CSharpRegexExpression, RegexOptions.Compiled);
+            
+            var supportedOpperators = new[] { "if", "for", "foreach", "else" };
+            var cSharpCode = new StringBuilder();
+            var reader = new StringReader(templateHtml);
+            string htmlLine;
+            while ((htmlLine = reader.ReadLine())!= null)
+            {
+                if (htmlLine.TrimStart().StartsWith("{")
+                    || htmlLine.TrimStart().StartsWith("}"))
+                {
+                    cSharpCode.AppendLine(htmlLine);
+                }
+                else if (supportedOpperators.Any(x => htmlLine.TrimStart().StartsWith("@" + x)))
+                {
+                    var indexOfAt = htmlLine.IndexOf("@");
+                    htmlLine = htmlLine.Remove(indexOfAt, 1);
+                    cSharpCode.AppendLine(htmlLine);
+                }
+                else
+                {
+                    // prepend a before the htmlLine in order to ensure that special chars can be escaped
+                    var currentLine = new StringBuilder("html.AppendLine(@\"");
+                    while (htmlLine.Contains("@"))
+                    {
+                        var atSignIndex = htmlLine.IndexOf("@");
+                        var beforeAtSign = htmlLine.Substring(0, atSignIndex);
+                        currentLine.Append(beforeAtSign.Replace("\"", "\"\"") + "\" + ");
+                        var cSharpAndEndOfLine = htmlLine.Substring(atSignIndex + 1);
+                        var cSharpExpression = regex.Match(cSharpAndEndOfLine);
+                        currentLine.Append(cSharpExpression.Value + " + @\"");
+                        var afterCSharpCode = cSharpAndEndOfLine.Substring(cSharpExpression.Length);
+                        // pass line back to check if there is another @ sign
+                        htmlLine = afterCSharpCode;
+                    }
+                    
+                    currentLine.Append(htmlLine.Replace("\"", "\"\"") + "\");");
+                    cSharpCode.AppendLine(currentLine.ToString());
+                }
+            }
+            return cSharpCode.ToString();
         }
     }
 }
