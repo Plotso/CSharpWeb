@@ -15,6 +15,12 @@
         private const string AppViewNamespace = "AppViewNamespace";
         private const string AppViewCode = "AppViewCode";
         
+        /// <summary>
+        /// Returns final HTML from a template after parsing C# code.
+        /// </summary>
+        /// <param name="templateHtml">An html template that can have Razor-like structure with C# Code</param>
+        /// <param name="model">Model is of type object since when it's being passed T when called. When Type is being passed to object, the object knows exactly of which type it is.</param>
+        /// <returns></returns>
         public string GetHtml(string templateHtml, object model)
         {
             var methodCode = PrepareCSharpCode(templateHtml);
@@ -40,7 +46,7 @@
                                         public string GetHtml(object model)
                                         {{
                                             var Model = model as {typeName};
-                                            //var User = user;
+                                            object User = null;
                                             var html = new StringBuilder();
 
                                 {methodCode}

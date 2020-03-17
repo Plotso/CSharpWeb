@@ -40,5 +40,10 @@
         /// Routing function that receives <see cref="HttpRequest"/> and returns <see cref="HttpResponse"/>.
         /// </summary>
         public Func<HttpRequest, HttpResponse> Action { get; set; }
+        
+        public override string ToString()
+        {
+            return $"{HttpMethod} => {Path}";
+        }
     }
 }

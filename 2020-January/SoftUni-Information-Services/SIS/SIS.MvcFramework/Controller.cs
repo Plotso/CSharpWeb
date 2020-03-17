@@ -1,6 +1,7 @@
 ﻿namespace SIS.MvcFramework
 {
     using System.IO;
+    using System.Net;
     using System.Runtime.CompilerServices;
     using HTTP.Models;
     using HTTP.Response;
@@ -10,17 +11,32 @@
         /// <summary>
         ///  Return HTMLResponse with the respective View from Views folder in your project. FileName parameter has attribute CallerMemberName and can be skipped. 
         /// </summary>
+        /// <param name="viewModel">The view model that should be used by the ViewEngine. By default it's null if nothing is passed.</param>
         /// <param name="fileName">If fileName is not passed, compiler will put calling method name as file name</param>
-        protected HttpResponse View([CallerMemberName]string fileName = null)
+        protected HttpResponse View<T>(T viewModel = null, [CallerMemberName]string fileName = null)
+            where T : class
         {
+            var viewEngine = new ViewEngine();
             var controllerName = GetType().Name.Replace("Controller", string.Empty);
             var htmlBodyFilePath = GetHTMLBodyFilePath(controllerName, fileName);
             
-            var layout = File.ReadAllText("Views/Shared/_Layout.html");
             var htmlBody = File.ReadAllText(htmlBodyFilePath);
+            htmlBody = viewEngine.GetHtml(htmlBody, viewModel);
+            
+            var layout = File.ReadAllText("Views/Shared/_Layout.html");
             var html = layout.Replace("@RenderBody()", htmlBody);
+            html = viewEngine.GetHtml(html, viewModel);
             
             return new HtmlResponse(html);
+        }
+        
+        /// <summary>
+        ///  Return HTMLResponse with the respective View from Views folder in your project. FileName parameter has attribute CallerMemberName and can be skipped. 
+        /// </summary>
+        /// <param name="fileName">If fileName is not passed, compiler will put calling method name as file name</param>
+        protected HttpResponse View([CallerMemberName]string fileName = null)
+        {
+            return this.View<object>(null, fileName);
         }
 
         /// <summary>
