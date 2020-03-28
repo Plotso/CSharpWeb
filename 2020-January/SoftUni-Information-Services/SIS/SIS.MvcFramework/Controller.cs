@@ -8,6 +8,8 @@
 
     public abstract class Controller
     {
+        public HttpRequest Request { get; set; }
+        
         /// <summary>
         ///  Return HTMLResponse with the respective View from Views folder in your project. FileName parameter has attribute CallerMemberName and can be skipped. 
         /// </summary>

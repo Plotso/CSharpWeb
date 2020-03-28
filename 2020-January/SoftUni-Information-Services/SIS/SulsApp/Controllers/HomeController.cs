@@ -3,10 +3,12 @@
     using System;
     using SIS.HTTP.Models;
     using SIS.MvcFramework;
+    using SIS.MvcFramework.Attributes;
     using ViewModels;
 
     public class HomeController : Controller
     {
+        [HttpGet("/")]
         public HttpResponse Index(HttpRequest request)
         {
             var viewModel = new IndexViewModel

@@ -89,7 +89,7 @@
                 }
 
                 var routeMap =
-                    _routeTable.FirstOrDefault(x => x.HttpMethod == request.Method && x.Path == request.Path);
+                    _routeTable.FirstOrDefault(x => x.HttpMethod == request.Method && string.Compare(x.Path, request.Path, StringComparison.OrdinalIgnoreCase) == 0);
                 
                 var response = routeMap == null ?
                     new HttpResponse(HttpResponseCode.NotFound, new byte[0]) 
