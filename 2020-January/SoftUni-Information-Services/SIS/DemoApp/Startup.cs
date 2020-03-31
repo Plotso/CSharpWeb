@@ -5,11 +5,13 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using Microsoft.Extensions.DependencyInjection;
     using SIS.HTTP;
     using SIS.HTTP.Enums;
     using SIS.HTTP.Models;
     using SIS.HTTP.Response;
     using SIS.MvcFramework;
+    using IServiceCollection = SIS.MvcFramework.DI.IServiceCollection;
 
     public class Startup : IMvcApplication
     {
@@ -22,15 +24,16 @@
             //routeTable.Add(new Route(HttpMethodType.Post, "/users/login", DoLogin));
             //routeTable.Add(new Route(HttpMethodType.Get, "/contact", Contact));
             routeTable.Add(new Route(HttpMethodType.Get, "/favicon.ico", FavIcon));
-        }
-
-        public void ConfigureServices()
-        {
+            
             var db = new ApplicationDbContext();
             db.Database.EnsureCreated();
         }
-        
-        
+
+        public void ConfigureServices(IServiceCollection serviceCollection)
+        {
+            throw new NotImplementedException();
+        }
+
         private static HttpResponse Index(HttpRequest request)
         {
             var username = request.SessionData.ContainsKey(TestUsernameCookie)

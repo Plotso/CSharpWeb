@@ -10,19 +10,22 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Enums;
+    using Logging;
     using Models;
 
     public class HttpServer : IHttpServer
     {
         private const string HttpNewLine = "\r\n";
         private readonly IList<Route> _routeTable;
+        private readonly ILogger _logger;
         private readonly TcpListener _tcpListener;
 
         private readonly IDictionary<string, IDictionary<string, string>> _sessionStorage;
 
-        public HttpServer(int port, IList<Route> routeTable)
+        public HttpServer(int port, IList<Route> routeTable, ILogger logger)
         {
             _routeTable = routeTable;
+            _logger = logger;
             _sessionStorage = new Dictionary<string, IDictionary<string, string>>();
             _tcpListener = new TcpListener(IPAddress.Loopback, port);
         }
@@ -65,8 +68,8 @@
                     bytes: requestBytes,
                     index: 0,
                     count: bytesRead);
-                Console.WriteLine(requestToString);
-                Console.WriteLine(new string('=', 60));
+                _logger.Log(requestToString);
+                _logger.Log(new string('=', 60));
 
                 var request = new HttpRequest(requestToString);
 

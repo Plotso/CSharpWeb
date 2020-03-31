@@ -21,7 +21,7 @@
         /// <param name="templateHtml">An html template that can have Razor-like structure with C# Code</param>
         /// <param name="model">Model is of type object since when it's being passed T when called. When Type is being passed to object, the object knows exactly of which type it is.</param>
         /// <returns></returns>
-        public string GetHtml(string templateHtml, object model)
+        public string GetHtml(string templateHtml, object model, string user)
         {
             var methodCode = PrepareCSharpCode(templateHtml);
             
@@ -43,10 +43,10 @@
                                 {{
                                     public class {AppViewCode} : IView
                                     {{
-                                        public string GetHtml(object model)
+                                        public string GetHtml(object model, string user)
                                         {{
                                             var Model = model as {typeName};
-                                            object User = null;
+                                            var User = user;
                                             var html = new StringBuilder();
 
                                 {methodCode}
@@ -56,7 +56,7 @@
                                     }}
                                 }}";
             var view = GetInstanceFromCode(code, model);
-            var html = view.GetHtml(model);
+            var html = view.GetHtml(model, user);
             return html;
         }
 
@@ -117,7 +117,7 @@
         }
         
 
-        private string PrepareCSharpCode(string templateHtml)
+        private static string PrepareCSharpCode(string templateHtml)
         {
             const string CSharpRegexExpression = @"[^\<\""\s&]+";
             var regex = new Regex(CSharpRegexExpression, RegexOptions.Compiled);

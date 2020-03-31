@@ -7,8 +7,10 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Attributes;
+    using DI;
     using HTTP;
     using HTTP.Enums;
+    using HTTP.Logging;
     using HTTP.Models;
     using HTTP.Response;
 
@@ -17,19 +19,24 @@
         public static async Task StartAsync(IMvcApplication application)
         {
             var routeTable = new List<Route>();
-            application.ConfigureServices();
-            application.Configure(routeTable);
-            AutoRegisterStaticFilesRoutes(routeTable);
-            AutoRegisterActionRoutes(routeTable, application);
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.Add<ILogger, ConsoleLogger>();
             
-            Console.WriteLine("Routes:");
+            application.ConfigureServices(serviceCollection);
+            application.Configure(routeTable);
+            
+            AutoRegisterStaticFilesRoutes(routeTable);
+            AutoRegisterActionRoutes(routeTable, application, serviceCollection);
+            
+            var logger = serviceCollection.CreateInstance<ILogger>();
+            logger.Log("Routes: ");
             foreach (var route in routeTable)
             {
-                Console.WriteLine(route.ToString());
+                logger.Log(route.ToString());
             }
 
-            Console.WriteLine("Requests:");
-            var httpServer = new HttpServer(80, routeTable);
+            logger.Log("Requests: ");
+            var httpServer = new HttpServer(80, routeTable, logger);
             await httpServer.StartAsync();
         }
 
@@ -37,7 +44,7 @@
         /// <summary>
         /// AutoRegistration of all actions of the user application. Actions are found in the following pattern - /{controller}/{action}/
         /// </summary>
-        private static void AutoRegisterActionRoutes(List<Route> routeTable, IMvcApplication application)
+        private static void AutoRegisterActionRoutes(List<Route> routeTable, IMvcApplication application, IServiceCollection serviceCollection)
         {
             // Can also used Assembly.GetEntryAssembly().GetTypes()
             var controllers = application.GetType().Assembly.GetTypes()
@@ -71,21 +78,24 @@
                             url = attribute.Url;
                         }
                     }
-                    
-                    //ToDo: Implement logic for returning valid Response based on the action above
-                    routeTable.Add(new Route(httpActionType, url, (request) =>
-                    {
-                        var controllerInstance = Activator.CreateInstance(controller) as Controller;
-                        var response = action.Invoke(controllerInstance, new [] {request}) as HttpResponse;
-                        return response;
-                        //return new HtmlResponse("Not yet implemented");
-                    }));
-                    Console.WriteLine(attribute?.ToString());
+
+                    routeTable.Add(new Route(httpActionType, url,
+                        (request) => InvokeAction(request, serviceCollection, controller, action)));
+                        
+                    //Console.WriteLine(attribute?.ToString());
                 }
             }
         }
 
-
+        private static HttpResponse InvokeAction(HttpRequest request, IServiceCollection serviceCollection,
+            Type controllerType, MethodInfo actionMethod)
+        {
+            var controllerInstance = serviceCollection.CreateInstance(controllerType) as Controller;
+            controllerInstance.Request = request;
+            var response = actionMethod.Invoke(controllerInstance, new object[] { }) as HttpResponse;
+            return response;
+        }
+        
         /// <summary>
         /// AutoRegistration of all static files inside wwwroot folder of the user application
         /// </summary>
