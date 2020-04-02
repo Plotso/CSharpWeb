@@ -87,13 +87,42 @@
             }
         }
 
-        private static HttpResponse InvokeAction(HttpRequest request, IServiceCollection serviceCollection,
-            Type controllerType, MethodInfo actionMethod)
+        private static HttpResponse InvokeAction(
+            HttpRequest request, 
+            IServiceCollection serviceCollection,
+            Type controllerType,
+            MethodInfo actionMethod)
         {
             var controllerInstance = serviceCollection.CreateInstance(controllerType) as Controller;
             controllerInstance.Request = request;
-            var response = actionMethod.Invoke(controllerInstance, new object[] { }) as HttpResponse;
+
+            var actionParametersValues = new List<object>();
+            var actionParameters = actionMethod.GetParameters();
+            foreach (var parameter in actionParameters)
+            {
+                var parameterName = parameter.Name.ToLower();
+                object value = GetValueFromRequests(request, parameterName);
+                actionParametersValues.Add(value);
+            }
+            
+            var response = actionMethod.Invoke(controllerInstance, actionParametersValues.ToArray()) as HttpResponse;
             return response;
+        }
+
+        private static object GetValueFromRequests(HttpRequest request, string parameterName)
+        {
+            object value = null;
+            parameterName = parameterName.ToLower();
+            if (request.QueryData.Any(x => x.Key.ToLower() == parameterName))
+            {
+                value = request.QueryData.FirstOrDefault(x => x.Key.ToLower() == parameterName).Value;
+            }
+            else if (request.FormData.Any(x => x.Key.ToLower() == parameterName))
+            {
+                value = request.FormData.FirstOrDefault(x => x.Key.ToLower() == parameterName).Value;
+            }
+
+            return value;
         }
         
         /// <summary>

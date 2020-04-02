@@ -18,6 +18,7 @@
             Headers = new List<Header>();
             Cookies = new List<Cookie>();
             FormData = new Dictionary<string, string>();
+            QueryData = new Dictionary<string, string>();
             
             HttpRequestParser.ParseRequest(httpRequestAsString, this);
         }
@@ -61,5 +62,15 @@
         /// Used to save data from HTML Form attributes
         /// </summary>
         public IDictionary<string, string> FormData { get; set; }
+        
+        /// <summary>
+        /// Used to save everything from the Path after '?' separator
+        /// </summary>
+        public string Query { get; set; }
+
+        /// <summary>
+        /// Used to save data from the Query
+        /// </summary>
+        public IDictionary<string, string> QueryData { get; set; }
     }
 }

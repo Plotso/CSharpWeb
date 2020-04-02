@@ -1,6 +1,7 @@
 ﻿namespace SulsApp.Controllers
 {
     using System;
+    using System.Linq;
     using System.Net.Mail;
     using Services;
     using SIS.HTTP.Logging;
@@ -24,13 +25,12 @@
         }
 
         [HttpPost("/Users/Login")]
-        public HttpResponse DoLogin()
+        public HttpResponse DoLogin(string username, string password)
         {
-            var requestData = Request.FormData;
-
-            var username = requestData["username"];
-            var password = requestData["password"];
-
+            if (username == null || password == null)
+            {
+                return Redirect("/Users/Login");
+            }
             var userId = _usersService.GetUserId(username, password);
             if (userId == null)
             {
@@ -51,6 +51,10 @@
         public HttpResponse DoRegister()
         {
             var requestData = Request.FormData;
+            if (!requestData.Any())
+            {
+                return Redirect("/Users/Register");
+            }
             
             var username = requestData["username"];
             var email = requestData["email"];
@@ -80,7 +84,7 @@
             _usersService.CreateUser(username, email, password);
             _logger.Log("New user: " + username);
 
-            return Redirect("Users/Login");
+            return Redirect("/Users/Login");
         }
 
         public HttpResponse Logout()

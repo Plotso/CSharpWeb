@@ -89,16 +89,26 @@
             }
 
             request.Body = bodyBuilder.ToString().TrimEnd('\r', '\n');
-            ParseFormData(request.FormData, request.Body);
+            ParseData(request.FormData, request.Body);
+
+            request.Query = string.Empty;
+            if (request.Path.Contains("?"))
+            {
+                var parts = request.Path.Split(new [] {'?'}, 2);
+                request.Path = parts[0];
+                request.Query = parts[1];
+            }
+            
+            ParseData(request.QueryData, request.Query);
         }
 
-        private static void ParseFormData(IDictionary<string, string> requestFormData, string requestBody)
+        private static void ParseData(IDictionary<string, string> output, string input)
         {
-            var dataParts = requestBody.Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
+            var dataParts = input.Split(new [] { '&' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var dataPart in dataParts)
             {
-                var parameterParts = dataPart.Split(new char[] { '=' }, 2);
-                requestFormData.Add(
+                var parameterParts = dataPart.Split(new [] { '=' }, 2);
+                output.Add(
                     HttpUtility.UrlDecode(parameterParts[0]),
                     HttpUtility.UrlDecode(parameterParts[1]));
             }
