@@ -25,8 +25,8 @@
             return View();
         }
 
-        [HttpPost("/Users/Login")]
-        public HttpResponse DoLogin(string username, string password)
+        [HttpPost]
+        public HttpResponse Login(string username, string password)
         {
             if (username == null || password == null)
             {
@@ -48,8 +48,8 @@
             return View();
         }
 
-        [HttpPost("/Users/Register")]
-        public HttpResponse DoRegister(RegisterInputModel input)
+        [HttpPost]
+        public HttpResponse Register(RegisterInputModel input)
         {
             if (input == null)
             {
@@ -76,6 +76,16 @@
                 return Error("Invalid email!");
             }
 
+            if (_usersService.IsUsernameUsed(input.Username))
+            {
+                return Error("Username already taken!");
+            }
+            
+            if (_usersService.IsEmailUsed(input.Email))
+            {
+                return Error("There is already an user using this email!");
+            }
+
             _usersService.CreateUser(input.Username, input.Email, input.Password);
             _logger.Log("New user: " + input.Username);
 
@@ -84,6 +94,10 @@
 
         public HttpResponse Logout()
         {
+            if (!IsUserLoggedIn())
+            {
+                return Redirect("/Users/Login");
+            }
             SignOut();
             return Redirect("/");
         }

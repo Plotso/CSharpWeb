@@ -38,6 +38,16 @@
                 .FirstOrDefault();
         }
 
+        public bool IsUsernameUsed(string username)
+        {
+            return _db.Users.Any(u => u.Username == username);
+        }
+
+        public bool IsEmailUsed(string email)
+        {
+            return _db.Users.Any(u => u.Email == email);
+        }
+
         public void ChangePassword(string username, string newPassword)
         {
             var user = _db.Users.FirstOrDefault(u => u.Username == username);

@@ -17,12 +17,21 @@
 
         public HttpResponse Create()
         {
+            if (!IsUserLoggedIn())
+            {
+                return Redirect("/Users/Login");
+            }
             return View();
         }
         
-        [HttpPost("/Problems/Create")]
-        public HttpResponse DoCreate(string name, int points)
+        [HttpPost]
+        public HttpResponse Create(string name, int points)
         {
+            if (!IsUserLoggedIn())
+            {
+                return Redirect("/Users/Login");
+            }
+            
             if (string.IsNullOrEmpty(name))
             {
                 return Error("Invalid name");
