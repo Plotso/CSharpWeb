@@ -8,6 +8,7 @@
     using SIS.HTTP.Models;
     using SIS.MvcFramework;
     using SIS.MvcFramework.Attributes;
+    using ViewModels.Users;
 
     public class UsersController : Controller
     {
@@ -48,41 +49,35 @@
         }
 
         [HttpPost("/Users/Register")]
-        public HttpResponse DoRegister()
+        public HttpResponse DoRegister(RegisterInputModel input)
         {
-            var requestData = Request.FormData;
-            if (!requestData.Any())
+            if (input == null)
             {
                 return Redirect("/Users/Register");
             }
-            
-            var username = requestData["username"];
-            var email = requestData["email"];
-            var password = requestData["password"];
-            var confirmPassword = requestData["confirmPassword"];
 
-            if (password != confirmPassword)
+            if (input.Password != input.ConfirmPassword)
             {
                 return Error("Passwords should be the same!");
             }
 
-            if (username?.Length < 5 || username?.Length > 20)
+            if (input.Username?.Length < 5 || input.Username?.Length > 20)
             {
                 return Error("Username should be at between 5 and 20 characters!");
             }
 
-            if (password?.Length < 6 || password?.Length > 20)
+            if (input.Password?.Length < 6 || input.Password?.Length > 20)
             {
                 return Error("Password should be at between 6 and 20 characters");
             }
 
-            if (!IsValid(email))
+            if (!IsValid(input.Email))
             {
                 return Error("Invalid email!");
             }
 
-            _usersService.CreateUser(username, email, password);
-            _logger.Log("New user: " + username);
+            _usersService.CreateUser(input.Username, input.Email, input.Password);
+            _logger.Log("New user: " + input.Username);
 
             return Redirect("/Users/Login");
         }

@@ -21,14 +21,19 @@
         }
         
         [HttpPost("/Problems/Create")]
-        public HttpResponse DoCreate(string name, string points)
+        public HttpResponse DoCreate(string name, int points)
         {
-            if (name == null || !int.TryParse(points, out int intPoints))
+            if (string.IsNullOrEmpty(name))
             {
-                return new RedirectResponse("/Problems/Create");
+                return Error("Invalid name");
+            }
+
+            if (points < 0 || points > 100)
+            {
+                return Error("Points not in range [0, 100]");
             }
             
-            _problemsService.CreateProblem(name, intPoints);
+            _problemsService.CreateProblem(name, points);
             return new RedirectResponse("/");
         }
         

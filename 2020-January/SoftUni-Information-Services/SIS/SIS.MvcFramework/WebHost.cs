@@ -96,20 +96,33 @@
             var controllerInstance = serviceCollection.CreateInstance(controllerType) as Controller;
             controllerInstance.Request = request;
 
-            var actionParametersValues = new List<object>();
+            var actionParameterValues = new List<object>();
             var actionParameters = actionMethod.GetParameters();
             foreach (var parameter in actionParameters)
             {
-                var parameterName = parameter.Name.ToLower();
-                object value = GetValueFromRequests(request, parameterName);
-                actionParametersValues.Add(value);
+                var value = Convert.ChangeType(GetValueFromRequest(request, parameter.Name), parameter.ParameterType);
+                if (value == null && parameter.ParameterType != typeof(string))
+                {
+                    var parameterValue = Activator.CreateInstance(parameter.ParameterType);
+                    foreach (var property in parameter.ParameterType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        var propertyValue = GetValueFromRequest(request, property.Name);
+                        property.SetValue(parameterValue, Convert.ChangeType(propertyValue, property.PropertyType));
+                    }
+
+                    actionParameterValues.Add(parameterValue);
+                }
+                else
+                {
+                    actionParameterValues.Add(value);
+                }
             }
             
-            var response = actionMethod.Invoke(controllerInstance, actionParametersValues.ToArray()) as HttpResponse;
+            var response = actionMethod.Invoke(controllerInstance, actionParameterValues.ToArray()) as HttpResponse;
             return response;
         }
 
-        private static object GetValueFromRequests(HttpRequest request, string parameterName)
+        private static object GetValueFromRequest(HttpRequest request, string parameterName)
         {
             object value = null;
             parameterName = parameterName.ToLower();

@@ -5,6 +5,7 @@
     using SIS.MvcFramework;
     using SIS.MvcFramework.Attributes;
     using ViewModels;
+    using ViewModels.Home;
 
     public class HomeController : Controller
     {
